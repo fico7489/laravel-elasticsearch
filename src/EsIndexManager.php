@@ -2,8 +2,10 @@
 
 namespace Fico7489\Es;
 
+use Facade\Ignition\Support\ComposerClassMap;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use HaydenPierce\ClassFinder\ClassFinder;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -85,7 +87,7 @@ class EsIndexManager
 
             foreach ($objects as $object) {
                 $query = $model->query();
-                if(method_exists($model, 'forceDelete')){
+                if (isClassUseTrait($model, SoftDeletes::class)) {
                     $query = $query->withTrashed();
                 }
                 $model = $query->find($object->id);
@@ -167,42 +169,54 @@ class EsIndexManager
 
     public static function getClassNamesForIndexes()
     {
-        //TODO
-        $path = app_path('../Modules/Product/Entities');
-        $namespace = 'Modules\\Product\\Entities\\';
+        $declaredClasses = self::fetchAllClassNames(base_path('Modules'));
+        $declaredClasses += self::fetchAllClassNames(base_path('app'));
 
-        $classNames = [];
+        $esClasses = [];
+        foreach ($declaredClasses as $declaredClass){
+            if(strpos($declaredClass, 'app\\') === 0 ||  strpos($declaredClass, 'Modules\\') === 0 ){
+                $class = new \ReflectionClass($declaredClass);
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(
-                $path
-            ),
-            \RecursiveIteratorIterator::SELF_FIRST
-        );
-        foreach ($iterator as $item) {
-            /** @var \SplFileInfo $item */
-            if ($item->isReadable() && $item->isFile() && 'php' === mb_strtolower($item->getExtension())) {
-                $name = $item->getRealPath();
-                $pos = strrpos($name, '/');
-                $name = substr($name, $pos + 1);
-                $name = str_replace('.php', '', $name);
-                $name = $namespace.$name;
-                $classNames[] = $name;
+                if ( $class->implementsInterface(EsInterface::class) ) {
+                    $esClasses[] = $declaredClass;
+                }
             }
         }
 
-        $classNamesFiltered = [];
-        foreach ($classNames as $className) {
-            if (false !== strpos($className, 'Traits\\')) {
-                continue;
-            }
+        return $esClasses;
+    }
 
-            if ((new $className()) instanceof EsInterface) {
-                $classNamesFiltered[] = $className;
+    private static function fetchAllClassNames($path){
+        $fqcns = [];
+
+        $allFiles = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
+        $phpFiles = new \RegexIterator($allFiles, '/\.php$/');
+        foreach ($phpFiles as $phpFile) {
+            $content = file_get_contents($phpFile->getRealPath());
+            $tokens = token_get_all($content);
+            $namespace = '';
+            for ($index = 0; isset($tokens[$index]); $index++) {
+                if (!isset($tokens[$index][0])) {
+                    continue;
+                }
+                if (T_NAMESPACE === $tokens[$index][0]) {
+                    $index += 2; // Skip namespace keyword and whitespace
+                    while (isset($tokens[$index]) && is_array($tokens[$index])) {
+                        $namespace .= $tokens[$index++][1];
+                    }
+                }
+                if (T_CLASS === $tokens[$index][0] && T_WHITESPACE === $tokens[$index + 1][0] && T_STRING === $tokens[$index + 2][0]) {
+                    $index += 2; // Skip class keyword and whitespace
+                    $fqcns[] = $namespace.'\\'.$tokens[$index][1];
+
+                    # break if you have one class per file (psr-4 compliant)
+                    # otherwise you'll need to handle class constants (Foo::class)
+                    break;
+                }
             }
         }
 
-        return $classNamesFiltered;
+        return $fqcns;
     }
 
     public function setOutput(OutputStyle $output): void
