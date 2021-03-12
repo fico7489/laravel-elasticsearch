@@ -20,9 +20,6 @@ class EsModelObserver
         if (0 == count($model->getChanges())) {
             return;
         }
-        if (1 == count($model->getChanges()) && !empty($model->getChanges()['remember_token'])) {
-            return;
-        }
 
         if ($model instanceof EsInterface && $model->getIsForSync()) {
             $this->esIndexManager->upsertModel($model);
@@ -43,8 +40,6 @@ class EsModelObserver
 
     public function deleted(Model $model)
     {
-        //echo 'deleted->'.get_class($model)."\n";
-
         $useSoftDelete = in_array(SoftDeletes::class, class_uses_recursive($model));
 
         if ($model instanceof EsInterface) {
@@ -58,8 +53,6 @@ class EsModelObserver
 
     public function forceDeleted(Model $model)
     {
-        //echo 'forceDeleted->'.get_class($model)."\n";
-
         if ($model instanceof EsInterface) {
             $this->esIndexManager->deleteModel($model);
         }
@@ -67,8 +60,6 @@ class EsModelObserver
 
     public function restored(Model $model)
     {
-        //echo 'restored->'.get_class($model)."\n";
-
         $this->saved($model);
     }
 }

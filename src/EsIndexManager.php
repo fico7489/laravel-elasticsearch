@@ -85,7 +85,7 @@ class EsIndexManager
 
             foreach ($objects as $object) {
                 $query = $model->query();
-                if (isClassUseTrait($model, SoftDeletes::class)) {
+                if(method_exists($model, 'forceDelete')){
                     $query = $query->withTrashed();
                 }
                 $model = $query->find($object->id);
