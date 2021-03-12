@@ -1,7 +1,8 @@
 <?php
 
-namespace Fico7489\Es;
+namespace Fico7489\Es\Commands;
 
+use Fico7489\Es\EsIndexManager;
 use Illuminate\Console\Command;
 
 class RecreateIndexImportData extends Command
