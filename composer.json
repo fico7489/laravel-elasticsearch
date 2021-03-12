@@ -1,15 +1,14 @@
 {
-  "name": "fico7489/laravel-paginator-helper",
-  "description": "Laravel paginator helper",
+  "name": "fico7489/laravel-elasticsearch",
+  "description": "Laravel elasticsearch",
   "keywords": [
     "laravel",
-    "Laravel paginator",
-    "Laravel paginator helper"
+    "Laravel elasticsearch"
   ],
-  "homepage": "https://github.com/fico7489/LaravelPaginatorHelper",
+  "homepage": "https://github.com/fico7489/laravel-elasticsearch",
   "support": {
-    "issues": "https://github.com/fico7489/LaravelPaginatorHelper/issues",
-    "source": "https://github.com/fico7489/LaravelPaginatorHelper"
+    "issues": "https://github.com/fico7489/laravel-elasticsearch/issues",
+    "source": "https://github.com/fico7489/laravel-elasticsearch"
   },
   "license": "MIT",
   "authors": [
