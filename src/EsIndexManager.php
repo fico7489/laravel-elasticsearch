@@ -188,7 +188,7 @@ class EsIndexManager
 
     private static function fetchAllClassNames($path){
         if( ! file_exists($path)){
-            return;
+            return [];
         }
         $fqcns = [];
 
