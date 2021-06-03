@@ -187,6 +187,9 @@ class EsIndexManager
     }
 
     private static function fetchAllClassNames($path){
+        if( ! file_exists($path)){
+            return;
+        }
         $fqcns = [];
 
         $allFiles = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
