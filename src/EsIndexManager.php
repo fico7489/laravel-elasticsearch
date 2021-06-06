@@ -259,12 +259,12 @@ class EsIndexManager
                 (string) $exception
             );
 
-            throw new \Exception($message);
+
+            if($exception->getCode() != 404){
+                throw new \Exception($message);
+            }
         }
 
-        if (!in_array($response->getStatusCode(), [200, 201])) {
-            throw new \Exception($response['error']);
-        }
     }
 
     private function log($text)
